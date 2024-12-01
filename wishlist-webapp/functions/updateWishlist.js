@@ -2,7 +2,7 @@ const axios = require('axios');
 
 exports.handler = async (event, context) => {
   const headers = {
-    'Access-Control-Allow-Origin': 'https://www.brunodesign.dk', // Replace with your Shopify store's domain
+    'Access-Control-Allow-Origin': '*', // Replace with your Shopify store's domain
     'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
   };
