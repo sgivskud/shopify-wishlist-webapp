@@ -5,7 +5,7 @@ export default async (req, context) => {
     return new Response(null, {
       status: 204,
       headers: {
-        "Access-Control-Allow-Origin": "https://www.brunodesign.dk", // Your Shopify store domain
+        "Access-Control-Allow-Origin": "www.brunodesign.dk", // Your Shopify store domain
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type",
       },
