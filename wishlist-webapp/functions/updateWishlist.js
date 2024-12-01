@@ -1,7 +1,7 @@
 exports.handler = async (event, context) => {
   // Add CORS headers to allow requests from your Shopify store
   const headers = {
-    'Access-Control-Allow-Origin': 'https://www.brunodesign.dk', // Replace with your Shopify store's domain
+    'Access-Control-Allow-Origin': '276958-a8.myshopify.com', // Replace with your Shopify store's domain
     'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
   };
