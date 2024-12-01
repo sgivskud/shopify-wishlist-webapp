@@ -5,7 +5,7 @@ export default async (req, context) => {
     return new Response(null, {
       status: 204,
       headers: {
-        "Access-Control-Allow-Origin": "https://www.brunodesign.dk", // Your Shopify store domain
+        "Access-Control-Allow-Origin": "*", // Your Shopify store domain
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type",
       },
@@ -16,7 +16,7 @@ export default async (req, context) => {
     return new Response(JSON.stringify({ message: "Method Not Allowed" }), {
       status: 405,
       headers: {
-        "Access-Control-Allow-Origin": "https://www.brunodesign.dk",
+        "Access-Control-Allow-Origin": "*",
       },
     });
   }
@@ -28,7 +28,7 @@ export default async (req, context) => {
       {
         status: 400,
         headers: {
-          "Access-Control-Allow-Origin": "https://www.brunodesign.dk",
+          "Access-Control-Allow-Origin": "*",
         },
       }
     );
@@ -66,7 +66,7 @@ export default async (req, context) => {
     return new Response(JSON.stringify({ success: true, wishlist }), {
       status: 200,
       headers: {
-        "Access-Control-Allow-Origin": "https://www.brunodesign.dk",
+        "Access-Control-Allow-Origin": "*",
       },
     });
   } catch (error) {
@@ -77,7 +77,7 @@ export default async (req, context) => {
       {
         status: 500,
         headers: {
-          "Access-Control-Allow-Origin": "https://www.brunodesign.dk",
+          "Access-Control-Allow-Origin": "*",
         },
       }
     );
