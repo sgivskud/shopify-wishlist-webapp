@@ -71,6 +71,7 @@ export default async (req, context) => {
     });
   } catch (error) {
     console.error("Error fetching wishlist:", error);
+    console.error("Detailed Error:", error);
     return new Response(
       JSON.stringify({ message: "Internal Server Error" }),
       {
