@@ -1,63 +1,90 @@
-// functions/fetchWishlist.js
+import fetch from 'node-fetch';
 
-const axios = require('axios');
+const SHOPIFY_STORE_NAME = process.env.SHOPIFY_STORE_NAME;
+const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
+const API_VERSION = process.env.API_VERSION;
+const METAOBJECT_TYPE = process.env.METAOBJECT_TYPE;
 
-exports.handler = async (event, context) => {
+export const handler = async (event) => {
   try {
-    // Ensure the request method is GET
-    if (event.httpMethod !== 'GET') {
-      return {
-        statusCode: 405,
-        body: JSON.stringify({ message: 'Method Not Allowed' }),
-      };
-    }
-
-    // Parse query parameters
-    const { customerId } = event.queryStringParameters;
-
-    if (!customerId) {
+    const { customer_id } = event.queryStringParameters || {};
+    if (!customer_id) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ message: 'Missing customerId parameter' }),
+        body: JSON.stringify({ error: 'Missing customer_id parameter' })
       };
     }
 
-    // Shopify API endpoint to fetch customer metafields
-    const url = `https://${process.env.SHOPIFY_STORE_DOMAIN}/admin/api/2024-10/customers/${customerId}/metafields.json`;
+    // 1. Search for the metaobject instance
+    const searchUrl = `https://${SHOPIFY_STORE_NAME}.myshopify.com/admin/api/${API_VERSION}/metaobjects/${METAOBJECT_TYPE}/instances.json?filter[product-mapping]=${encodeURIComponent(customer_id)}`;
 
-    // Make the GET request to Shopify
-    const response = await axios.get(url, {
+    const searchResponse = await fetch(searchUrl, {
       headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Access-Token': process.env.SHOPIFY_ACCESS_TOKEN,
-      },
-      params: {
-        namespace: 'wishlist',
-        key: 'favorites',
-      },
+        'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN,
+        'Content-Type': 'application/json'
+      }
     });
 
-    const metafields = response.data.metafields;
-
-    if (metafields.length === 0) {
+    if (!searchResponse.ok) {
       return {
-        statusCode: 200,
-        body: JSON.stringify({ favorites: [] }),
+        statusCode: searchResponse.status,
+        body: JSON.stringify({ error: 'Error searching metaobject instances' })
       };
     }
 
-    // Assuming 'favorites' metafield contains a JSON array of product IDs
-    const favorites = JSON.parse(metafields[0].value);
+    const searchData = await searchResponse.json();
+    let instance = searchData.metaobjects && searchData.metaobjects[0];
+
+    if (!instance) {
+      // No entry found, create a new one
+      const createUrl = `https://${SHOPIFY_STORE_NAME}.myshopify.com/admin/api/${API_VERSION}/metaobjects/${METAOBJECT_TYPE}/instances.json`;
+      const createPayload = {
+        metaobject: {
+          type: METAOBJECT_TYPE,
+          fields: {
+            "product-mapping": { value: customer_id },
+            "favorites": { value: JSON.stringify([]) }
+          }
+        }
+      };
+
+      const createResponse = await fetch(createUrl, {
+        method: 'POST',
+        headers: {
+          'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(createPayload)
+      });
+
+      if (!createResponse.ok) {
+        return {
+          statusCode: createResponse.status,
+          body: JSON.stringify({ error: 'Error creating new metaobject instance' })
+        };
+      }
+
+      const createdData = await createResponse.json();
+      instance = createdData.metaobject;
+    }
+
+    // Parse favorites JSON
+    const favoritesField = instance.fields.find(f => f.key === 'favorites');
+    let favorites = [];
+    if (favoritesField && favoritesField.value) {
+      favorites = JSON.parse(favoritesField.value);
+    }
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ favorites }),
+      body: JSON.stringify({ customer_id, favorites })
     };
-  } catch (error) {
-    console.error('Error fetching wishlist:', error.response ? error.response.data : error.message);
+
+  } catch (err) {
+    console.error('Error fetching wishlist:', err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ message: 'Internal Server Error' }),
+      body: JSON.stringify({ error: 'Internal server error', details: err.message })
     };
   }
 };
