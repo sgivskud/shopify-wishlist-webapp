@@ -1,6 +1,6 @@
 [build]
-  functions = "functions"
+  functions = "Functions"
   command = "npm install"
 
 [functions]
-  directory = "functions"
+  directory = "Functions"
