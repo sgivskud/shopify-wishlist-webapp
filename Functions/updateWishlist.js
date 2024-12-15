@@ -1,109 +1,143 @@
 // functions/updateWishlist.js
+import fetch from 'node-fetch';
 
-const axios = require('axios');
+const SHOPIFY_STORE_NAME = process.env.SHOPIFY_STORE_NAME;
+const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
+const API_VERSION = process.env.API_VERSION;
+const METAOBJECT_TYPE = process.env.METAOBJECT_TYPE;
 
-exports.handler = async (event, context) => {
+export const handler = async (event) => {
   try {
-    // Ensure the request method is POST
-    if (event.httpMethod !== 'POST') {
+    if (event.httpMethod !== 'POST' && event.httpMethod !== 'PUT') {
       return {
         statusCode: 405,
-        body: JSON.stringify({ message: 'Method Not Allowed' }),
+        body: JSON.stringify({ error: 'Method not allowed' })
       };
     }
 
-    // Parse the request body
-    const { customerId, productId } = JSON.parse(event.body);
+    const data = JSON.parse(event.body || '{}');
+    const { customer_id, action, product_id } = data;
 
-    if (!customerId || !productId) {
+    if (!customer_id || !action || !product_id) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ message: 'Missing customerId or productId in request body' }),
+        body: JSON.stringify({ error: 'Missing required fields: customer_id, action, product_id' })
       };
     }
 
-    // Step 1: Fetch existing wishlist
-    const getUrl = `https://${process.env.SHOPIFY_STORE_DOMAIN}/admin/api/2024-10/customers/${customerId}/metafields.json`;
-
-    const getResponse = await axios.get(getUrl, {
+    // 1. Find the metaobject instance
+    const searchUrl = `https://${SHOPIFY_STORE_NAME}.myshopify.com/admin/api/${API_VERSION}/metaobjects/${METAOBJECT_TYPE}/instances.json?filter[product-mapping]=${encodeURIComponent(customer_id)}`;
+    const searchResponse = await fetch(searchUrl, {
       headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Access-Token': process.env.SHOPIFY_ACCESS_TOKEN,
-      },
-      params: {
-        namespace: 'wishlist',
-        key: 'favorites',
-      },
+        'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN,
+        'Content-Type': 'application/json'
+      }
     });
 
+    if (!searchResponse.ok) {
+      return {
+        statusCode: searchResponse.status,
+        body: JSON.stringify({ error: 'Error searching metaobject instance' })
+      };
+    }
+
+    const searchData = await searchResponse.json();
+    let instance = searchData.metaobjects && searchData.metaobjects[0];
+
+    // If no instance found, create a new one
+    if (!instance) {
+      const createUrl = `https://${SHOPIFY_STORE_NAME}.myshopify.com/admin/api/${API_VERSION}/metaobjects/${METAOBJECT_TYPE}/instances.json`;
+      const createPayload = {
+        metaobject: {
+          type: METAOBJECT_TYPE,
+          fields: {
+            "product-mapping": { value: customer_id },
+            "favorites": { value: JSON.stringify([]) }
+          }
+        }
+      };
+
+      const createResponse = await fetch(createUrl, {
+        method: 'POST',
+        headers: {
+          'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(createPayload)
+      });
+
+      if (!createResponse.ok) {
+        return {
+          statusCode: createResponse.status,
+          body: JSON.stringify({ error: 'Error creating new metaobject instance' })
+        };
+      }
+
+      const createdData = await createResponse.json();
+      instance = createdData.metaobject;
+    }
+
+    // Extract current favorites
+    const favoritesField = instance.fields.find(f => f.key === 'favorites');
     let favorites = [];
-
-    if (getResponse.data.metafields.length > 0) {
-      favorites = JSON.parse(getResponse.data.metafields[0].value);
+    if (favoritesField && favoritesField.value) {
+      favorites = JSON.parse(favoritesField.value);
     }
 
-    // Step 2: Update the wishlist
-    if (!favorites.includes(productId)) {
-      favorites.push(productId);
+    // Update favorites
+    const productIdInt = parseInt(product_id, 10);
+    if (action === 'add') {
+      if (!favorites.includes(productIdInt)) {
+        favorites.push(productIdInt);
+      }
+    } else if (action === 'remove') {
+      favorites = favorites.filter(id => id !== productIdInt);
     } else {
-      // If product already liked, remove it (toggle behavior)
-      favorites = favorites.filter(id => id !== productId);
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Invalid action' })
+      };
     }
 
-    // Step 3: Update or Create metafield
-    if (getResponse.data.metafields.length > 0) {
-      // Update existing metafield
-      const metafieldId = getResponse.data.metafields[0].id;
-      const updateUrl = `https://${process.env.SHOPIFY_STORE_DOMAIN}/admin/api/2024-10/metafields/${metafieldId}.json`;
-
-      await axios.put(
-        updateUrl,
-        {
-          metafield: {
-            id: metafieldId,
-            value: JSON.stringify(favorites),
-            value_type: 'json',
-          },
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Shopify-Access-Token': process.env.SHOPIFY_ACCESS_TOKEN,
-          },
+    // Update the instance
+    const updateUrl = `https://${SHOPIFY_STORE_NAME}.myshopify.com/admin/api/${API_VERSION}/metaobjects/${METAOBJECT_TYPE}/instances/${instance.id}.json`;
+    const updatePayload = {
+      metaobject: {
+        id: instance.id,
+        type: METAOBJECT_TYPE,
+        fields: {
+          "product-mapping": { value: customer_id },
+          "favorites": { value: JSON.stringify(favorites) }
         }
-      );
-    } else {
-      // Create new metafield
-      const createUrl = `https://${process.env.SHOPIFY_STORE_DOMAIN}/admin/api/2024-10/customers/${customerId}/metafields.json`;
+      }
+    };
 
-      await axios.post(
-        createUrl,
-        {
-          metafield: {
-            namespace: 'wishlist',
-            key: 'favorites',
-            value: JSON.stringify(favorites),
-            type: 'json',
-          },
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Shopify-Access-Token': process.env.SHOPIFY_ACCESS_TOKEN,
-          },
-        }
-      );
+    const updateResponse = await fetch(updateUrl, {
+      method: 'PUT',
+      headers: {
+        'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(updatePayload)
+    });
+
+    if (!updateResponse.ok) {
+      return {
+        statusCode: updateResponse.status,
+        body: JSON.stringify({ error: 'Error updating metaobject instance' })
+      };
     }
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ favorites }),
+      body: JSON.stringify({ customer_id, favorites })
     };
-  } catch (error) {
-    console.error('Error updating wishlist:', error.response ? error.response.data : error.message);
+
+  } catch (err) {
+    console.error('Error updating wishlist:', err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ message: 'Internal Server Error' }),
+      body: JSON.stringify({ error: 'Internal server error', details: err.message })
     };
   }
 };
