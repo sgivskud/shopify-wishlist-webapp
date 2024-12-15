@@ -1,0 +1,7 @@
+# Allow CORS for all serverless functions
+
+/.netlify/functions/*
+  Access-Control-Allow-Origin: https://brunogenbrug.dk
+  Access-Control-Allow-Methods: GET, POST, PUT, OPTIONS
+  Access-Control-Allow-Headers: Content-Type
+  Access-Control-Allow-Credentials: true
