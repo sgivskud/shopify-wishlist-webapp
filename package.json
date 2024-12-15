@@ -1,0 +1,19 @@
+{
+  "name": "shopify-wishlist-manager",
+  "version": "1.0.0",
+  "description": "Netlify functions to manage Shopify customer wishlists",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo \"No build step necessary\"",
+    "start": "netlify dev"
+  },
+  "dependencies": {
+    "axios": "^1.4.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^11.0.0"
+  },
+  "keywords": [],
+  "author": "Your Name",
+  "license": "MIT"
+}
