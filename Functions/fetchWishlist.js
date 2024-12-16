@@ -1,5 +1,3 @@
-import fetch from 'node-fetch';
-
 const SHOPIFY_STORE_NAME = process.env.SHOPIFY_STORE_NAME;
 const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
 const API_VERSION = process.env.API_VERSION;
