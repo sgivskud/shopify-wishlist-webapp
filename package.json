@@ -8,6 +8,5 @@
     "start": "netlify dev"
   },
   "dependencies": {
-    "node-fetch": "^3.3.1"
   }
 }
