@@ -1,6 +1,3 @@
-// functions/updateWishlist.js
-import fetch from 'node-fetch';
-
 const axios = require('axios');
 
 const SHOPIFY_STORE_NAME = process.env.SHOPIFY_STORE_NAME;
