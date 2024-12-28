@@ -25,7 +25,7 @@ export const handler = async (event) => {
     }
 
     // 1. Find the metaobject instance
-    const searchUrl = `https://${SHOPIFY_STORE_NAME}.myshopify.com/admin/api/${API_VERSION}/metaobjects/${METAOBJECT_TYPE}/instances.json?filter[product-mapping]=${encodeURIComponent(customer_id)}`;
+    const searchUrl = `https://${SHOPIFY_STORE_NAME}.dk/admin/api/${API_VERSION}/metaobjects/${METAOBJECT_TYPE}/instances.json?filter[product-mapping]=${encodeURIComponent(customer_id)}`;
     const searchResponse = await fetch(searchUrl, {
       headers: {
         'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN,
@@ -45,7 +45,7 @@ export const handler = async (event) => {
 
     // If no instance found, create a new one
     if (!instance) {
-      const createUrl = `https://${SHOPIFY_STORE_NAME}.myshopify.com/admin/api/${API_VERSION}/metaobjects/${METAOBJECT_TYPE}/instances.json`;
+      const createUrl = `https://${SHOPIFY_STORE_NAME}.dk/admin/api/${API_VERSION}/metaobjects/${METAOBJECT_TYPE}/instances.json`;
       const createPayload = {
         metaobject: {
           type: METAOBJECT_TYPE,
@@ -99,7 +99,7 @@ export const handler = async (event) => {
     }
 
     // Update the instance
-    const updateUrl = `https://${SHOPIFY_STORE_NAME}.myshopify.com/admin/api/${API_VERSION}/metaobjects/${METAOBJECT_TYPE}/instances/${instance.id}.json`;
+    const updateUrl = `https://${SHOPIFY_STORE_NAME}.dk/admin/api/${API_VERSION}/metaobjects/${METAOBJECT_TYPE}/instances/${instance.id}.json`;
     const updatePayload = {
       metaobject: {
         id: instance.id,
