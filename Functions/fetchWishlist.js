@@ -40,7 +40,7 @@ export const handler = async (event) => {
         metaobject: {
           type: METAOBJECT_TYPE,
           fields: {
-            "product-mapping": { value: customer_id },
+            "product_mapping": { value: customer_id },
             "favorites": { value: JSON.stringify([]) }
           }
         }
