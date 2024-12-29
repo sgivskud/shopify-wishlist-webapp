@@ -3,6 +3,9 @@ const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
 const API_VERSION = process.env.API_VERSION;
 const METAOBJECT_TYPE = process.env.METAOBJECT_TYPE;
 
+const errorText = await searchResponse.text();
+console.error('Shopify error:', errorText);
+
 export const handler = async (event) => {
   try {
     const { customer_id } = event.queryStringParameters || {};
@@ -14,7 +17,7 @@ export const handler = async (event) => {
     }
 
     // 1. Search for the metaobject instance
-    const searchUrl = `https://${SHOPIFY_STORE_NAME}.dk/admin/api/${API_VERSION}/metaobjects/${METAOBJECT_TYPE}/instances.json?filter[product_mapping]=${encodeURIComponent(customer_id)}`;
+    const searchUrl = `https://${SHOPIFY_STORE_NAME}.dk/admin/api/${API_VERSION}/metaobjects/${METAOBJECT_TYPE}/instances.json?filter[product-mapping]=${encodeURIComponent(customer_id)}`;
 
     const searchResponse = await fetch(searchUrl, {
       headers: {
@@ -40,7 +43,7 @@ export const handler = async (event) => {
         metaobject: {
           type: METAOBJECT_TYPE,
           fields: {
-            "product_mapping": { value: customer_id },
+            "product-mapping": { value: customer_id },
             "favorites": { value: JSON.stringify([]) }
           }
         }
