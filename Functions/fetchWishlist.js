@@ -14,7 +14,7 @@ export const handler = async (event) => {
     }
 
     // 1. Search for the metaobject instance
-    const searchUrl = `https://${SHOPIFY_STORE_NAME}.dk/admin/api/${API_VERSION}/metaobjects/${METAOBJECT_TYPE}/instances.json?filter[product-mapping]=${encodeURIComponent(customer_id)}`;
+    const searchUrl = `https://${SHOPIFY_STORE_NAME}.dk/admin/api/${API_VERSION}/metaobjects/${METAOBJECT_TYPE}/instances.json?filter[product_mapping]=${encodeURIComponent(customer_id)}`;
 
     const searchResponse = await fetch(searchUrl, {
       headers: {
