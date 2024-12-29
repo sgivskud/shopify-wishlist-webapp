@@ -1,11 +1,3 @@
-const SHOPIFY_STORE_NAME = process.env.SHOPIFY_STORE_NAME;
-const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
-const API_VERSION = process.env.API_VERSION;
-const METAOBJECT_TYPE = process.env.METAOBJECT_TYPE;
-
-const errorText = await searchResponse.text();
-console.error('Shopify error:', errorText);
-
 export const handler = async (event) => {
   try {
     const { customer_id } = event.queryStringParameters || {};
@@ -27,6 +19,10 @@ export const handler = async (event) => {
     });
 
     if (!searchResponse.ok) {
+      // NOW we can use 'await' because we're inside an async function
+      const errorText = await searchResponse.text();
+      console.error('Shopify error:', errorText);
+
       return {
         statusCode: searchResponse.status,
         body: JSON.stringify({ error: 'Error searching metaobject instances' })
@@ -43,8 +39,8 @@ export const handler = async (event) => {
         metaobject: {
           type: METAOBJECT_TYPE,
           fields: {
-            "product-mapping": { value: customer_id },
-            "favorites": { value: JSON.stringify([]) }
+            'product-mapping': { value: customer_id },
+            'favorites': { value: JSON.stringify([]) }
           }
         }
       };
@@ -59,6 +55,9 @@ export const handler = async (event) => {
       });
 
       if (!createResponse.ok) {
+        const errorText = await createResponse.text();
+        console.error('Shopify error (create):', errorText);
+
         return {
           statusCode: createResponse.status,
           body: JSON.stringify({ error: 'Error creating new metaobject instance' })
