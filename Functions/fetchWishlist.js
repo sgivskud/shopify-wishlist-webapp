@@ -1,9 +1,9 @@
 // functions/fetchWishlist.js
 
-const SHOPIFY_STORE_NAME = process.env.SHOPIFY_STORE_NAME;       // e.g., "276958-a8" (without .myshopify.com)
-const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;   // e.g., "shpat_1234567890abcdef"
-const API_VERSION = process.env.API_VERSION;                     // e.g., "2024-10"
-const METAOBJECT_TYPE = process.env.METAOBJECT_TYPE;             // e.g., "shopify--customer-product-mapping"
+const SHOPIFY_STORE_NAME = process.env.SHOPIFY_STORE_NAME;       
+const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;   
+const API_VERSION = process.env.API_VERSION;                     
+const METAOBJECT_TYPE = process.env.METAOBJECT_TYPE;            
 
 export const handler = async (event) => {
   try {
